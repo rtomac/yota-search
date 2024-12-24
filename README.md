@@ -44,6 +44,22 @@ make run
 MODEL=corolla ZIPCODE=97204 DISTANCE=100 CSV=out/inventory.csv JSON=out/inventory.json make run
 ```
 
+## Running via published Docker image
+
+The app is published as a multi-arch image to Docker hub [here](https://hub.docker.com/r/rtomac/toyota-inventory).
+
+#### Run
+```
+docker run -it \
+    -e MODEL=corolla \
+    -e ZIPCODE=97204 \
+    -e DISTANCE=100 \
+    -e CSV=out/inventory.csv \
+    -e JSON=out/inventory.json \
+    -v ./out:/root/app/out \
+    rtomac/toyota-inventory:latest
+```
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
