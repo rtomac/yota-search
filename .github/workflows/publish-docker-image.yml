@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  publish-gist:
+  publish-docker-image:
     runs-on: ubuntu-latest
 
     steps:
