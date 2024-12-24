@@ -21,7 +21,7 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t toyota-inventory:latest .
+        docker build -t rtomac/toyota-inventory:latest .
 
     - name: Push Docker Image
       run: |
