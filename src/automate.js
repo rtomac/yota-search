@@ -10,6 +10,7 @@ const BASE_URL = `https://www.toyota.com/search-inventory/model`;
 const GRAPHQL_URI = 'https://api.search-inventory.toyota.com/graphql';
 const GRAPHQL_QUERY = 'locateVehiclesByZip';
 const GRAPHQL_QUERY_PATH = path.join(__dirname, 'query.graphql');
+const NAVIGATE_TIMEOUT_S = 120;
 
 const argv = yargs.argv;
 const params = {
@@ -40,7 +41,7 @@ async function main() {
         executablePath: executablePath,
         args: args,
     });
-    logger.info('Launched browser with args:', args);
+    logger.info('Launched Chrome browser with args:', args);
 
     const page = await browser.newPage();
     await page.setViewport({ width: 1024, height: 768 });
@@ -83,8 +84,7 @@ async function runWithListenerOnPageQueries(page) {
     page.on('response', (response) => onResponse(response, inventory));
     logger.debug('Attached response listener');
 
-    logger.info(`Navigating to page ${pageUrl}`);
-    await page.goto(pageUrl, { waitUntil: ['load', 'networkidle0'] });
+    await goto(page, pageUrl);
     logger.debug('Page content:', await page.content());
     // await page.screenshot({ path: 'screenshot.png' });
 
@@ -97,8 +97,7 @@ async function runWithCustomQuery(page) {
     const pageUrl = `${BASE_URL}/${params.model}/?zipcode=${params.zipcode}`;
     const inventory = [];
 
-    logger.info(`Navigating to page ${pageUrl}`);
-    await page.goto(pageUrl, { waitUntil: ['load', 'networkidle0'] });
+    await goto(page, pageUrl);
 
     let query = fs.readFileSync(GRAPHQL_QUERY_PATH, 'utf8');
     for (const key in params) {
@@ -112,12 +111,21 @@ async function runWithCustomQuery(page) {
     return inventory;
 }
 
+async function goto(page, url) {
+    logger.info(`Navigating to URL ${url}`);
+    await page.goto(url, { waitUntil: ['load', 'networkidle0'], timeout: NAVIGATE_TIMEOUT_S * 1000 });
+}
+
 async function onResponse(response, inventory) {
     const url = response.url().toLowerCase().trim();
     const status = response.status();
     logger.debug(`Handled response for URL ${url} with status ${status}`);
 
     if (url === GRAPHQL_URI) {
+        if (!response.ok()) {
+            throw new Error(`GraphQL request failed with ${status} status`);
+        }
+
         const request = response.request();
         if (request.method().toUpperCase() === 'POST') {
             const postData = request.postData();
@@ -125,14 +133,10 @@ async function onResponse(response, inventory) {
 
             if (postData.includes(GRAPHQL_QUERY)) {
                 logger.info(`Captured response for GraphQL query from ${url}`);
-                if (response.ok) {
-                    const json = await response.json();
-                    logger.debug('Response body', JSON.stringify(json, null, 2));
-                    processGraphQLResponse(json, inventory);
-                }
-                else {
-                    throw new Error(`GraphQL request failed with ${status} status`);
-                }
+                
+                const json = await response.json();
+                logger.debug('Response body', JSON.stringify(json, null, 2));
+                processGraphQLResponse(json, inventory);
             }
         }
     }
