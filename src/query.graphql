@@ -1,0 +1,81 @@
+query {
+    locateVehiclesByZip(zipCode: "{zipcode}", brand: "TOYOTA", pageNo: {pageNo}, pageSize: 250, seriesCodes: "{model}", distance: {distance}, leadid: "{leadid}") {
+        pagination {
+            pageNo
+            pageSize
+            totalPages
+        }
+        vehicleSummary {
+            vin
+            brand
+            marketingSeries
+            year
+            dealerCd
+            dealerCategory
+            inventoryStatus
+            distributorCd
+            isPreSold
+            dealerMarketingName
+            dealerWebsite
+            vdpUrl
+            isSmartPath
+            distance
+            isUnlockPriceDealer
+            transmission {
+                transmissionType
+            }
+            price {
+                advertizedPrice
+                nonSpAdvertizedPrice
+                totalMsrp
+                sellingPrice
+                dph
+                dioTotalMsrp
+                dioTotalDealerSellingPrice
+                dealerCashApplied
+                baseMsrp
+            }
+            options {
+                optionCd
+                marketingName
+                marketingLongName
+                optionType
+                packageInd
+            }
+            mpg {
+                city
+                highway
+                combined
+            }
+            model {
+                modelCd
+                marketingName
+                marketingTitle
+            }
+            intColor {
+                colorCd
+                colorSwatch
+                marketingName
+                nvsName
+                colorFamilies
+            }
+            extColor {
+                colorCd
+                colorSwatch
+                marketingName
+                colorHexCd
+                nvsName
+                colorFamilies
+            }
+            engine {
+                engineCd
+                name
+            }
+            drivetrain {
+                code
+                title
+                bulletlist
+            }
+        }
+    }
+}
