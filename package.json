@@ -10,6 +10,7 @@
   "description": "Automates navigation of Toyota's inventory search via a GUI browser to export a single query of inventory data into a structured format.",
   "dependencies": {
     "csv-stringify": "^6.5.2",
+    "log4js": "^6.9.1",
     "puppeteer": "^23.11.1",
     "uuid": "^11.0.3",
     "yargs": "^17.7.2"

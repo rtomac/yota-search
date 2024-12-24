@@ -1,6 +1,7 @@
 SHELL=/bin/bash
 
 IMAGE_NAME=toyota-inventory
+LOGLEVEL?=info
 
 .PHONY: setup
 setup:
@@ -22,6 +23,7 @@ run:
 		-e DISTANCE=$(DISTANCE) \
 		-e CSV=$(CSV) \
 		-e JSON=$(JSON) \
+		-e LOGLEVEL=$(LOGLEVEL) \
 		-v ./src:/root/app/src \
 		-v ./out:/root/app/out \
 		-v ./start.sh:/root/app/start.sh \

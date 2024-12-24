@@ -26,6 +26,7 @@ jobs:
           -e DISTANCE=250 \
           -e CSV=/root/artifacts/inventory.csv \
           -e JSON=/root/artifacts/inventory.json \
+          -e LOGLEVEL=debug \
           -v "$(pwd)/artifacts:/root/artifacts" \
           toyota-inventory
 

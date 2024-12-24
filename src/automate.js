@@ -1,6 +1,7 @@
 const yargs = require('yargs');
 const fs = require('fs');
 const path = require('path');
+const log4js = require('log4js');
 const puppeteer = require('puppeteer');
 const uuid = require('uuid');
 const { stringify } = require('csv-stringify');
@@ -22,17 +23,28 @@ const jsonPathArg = param(argv.json, process.env.JSON);
 const jsonPath = jsonPathArg ? path.resolve(jsonPathArg) : null;
 const csvPathArg = param(argv.csv, process.env.CSV);
 const csvPath = csvPathArg ? path.resolve(csvPathArg) : null;
+const logLevel = param(argv.loglevel, process.env.LOGLEVEL, 'info');
+
+log4js.configure({
+    appenders: { console: { type: 'console' } },
+    categories: { default: { appenders: ['console'], level: logLevel.toLowerCase() } },
+});
+const logger = log4js.getLogger();
 
 
 async function main() {
-    let executablePath = process.env.CHROME_EXECUTABLE_PATH || null;
+    const executablePath = process.env.CHROME_EXECUTABLE_PATH || null;
+    const args = [ '--no-sandbox', '--disable-setuid-sandbox', '--start-maximized', '--disable-dev-shm-usage' ];
     const browser = await puppeteer.launch({
         headless: false,
         executablePath: executablePath,
-        args: [ '--no-sandbox', '--disable-setuid-sandbox', '--start-maximized', '--disable-dev-shm-usage' ]
+        args: args,
     });
+    logger.info('Launched browser with args:', args);
+
     const page = await browser.newPage();
     await page.setViewport({ width: 1024, height: 768 });
+    logger.info('Created new tab in browser');
 
     // We can run in one of two modes:
     // 1. Load the initial page with query parameters and intercept the GraphQL responses
@@ -41,14 +53,16 @@ async function main() {
     inventory = await runWithListenerOnPageQueries(page);
     //inventory = await runWithCustomQuery(page);
 
+    logger.info(`Found a total of ${inventory.length} inventory entr(ies) to write`);
+
     if (jsonPath) {
         fs.writeFileSync(jsonPath, JSON.stringify(inventory, null, 2));
-        console.log(`Inventory JSON written to ${jsonPath}`);
+        logger.info(`Inventory JSON written to ${jsonPath}`);
     }
 
     if (csvPath) {
         writeInventoryToCsv(inventory, csvPath);
-        console.log(`Inventory CSV written to ${csvPath}`);
+        logger.info(`Inventory CSV written to ${csvPath}`);
     }
 
     await browser.close();
@@ -61,24 +75,29 @@ function param(arg, env, def) {
 }
 
 async function runWithListenerOnPageQueries(page) {
+    logger.info('Running with listener on page queries');
+
     const pageUrl = `${BASE_URL}/${params.model}/?zipcode=${params.zipcode}&distance=${params.distance}&salePending=${params.salePending}&inTransit=${params.inTransit}`;
     const inventory = [];
 
-    console.log(`Navigating to page ${pageUrl}`);
     page.on('response', (response) => onResponse(response, inventory));
+    logger.debug('Attached response listener');
+
+    logger.info(`Navigating to page ${pageUrl}`);
     await page.goto(pageUrl, { waitUntil: ['load', 'networkidle0'] });
-    // const pageContent = await page.content();
-    // console.log(pageContent);
+    logger.debug('Page content:', await page.content());
     // await page.screenshot({ path: 'screenshot.png' });
 
     return inventory;
 }
 
 async function runWithCustomQuery(page) {
+    logger.info('Running with custom query');
+
     const pageUrl = `${BASE_URL}/${params.model}/?zipcode=${params.zipcode}`;
     const inventory = [];
 
-    console.log(`Navigating to page ${pageUrl}`);
+    logger.info(`Navigating to page ${pageUrl}`);
     await page.goto(pageUrl, { waitUntil: ['load', 'networkidle0'] });
 
     let query = fs.readFileSync(GRAPHQL_QUERY_PATH, 'utf8');
@@ -86,7 +105,7 @@ async function runWithCustomQuery(page) {
         query = query.replace(`{${key}}`, params[key]);
     }
     query = query.replace('{leadid}', uuid.v4());
-    //console.log(`Executing GraphQL query: ${query}`);
+    logger.debug('Executing GraphQL query:', query);
 
     await executeGraphQLQueryWithPaging(page, query, inventory);
 
@@ -95,20 +114,24 @@ async function runWithCustomQuery(page) {
 
 async function onResponse(response, inventory) {
     const url = response.url().toLowerCase().trim();
+    const status = response.status();
+    logger.debug(`Handled response for URL ${url} with status ${status}`);
+
     if (url === GRAPHQL_URI) {
         const request = response.request();
         if (request.method().toUpperCase() === 'POST') {
             const postData = request.postData();
-            //console.log(postData);
+            logger.debug('Post data:', postData);
+
             if (postData.includes(GRAPHQL_QUERY)) {
-                console.log(`Captured response for GraphQL query from ${url}`);
+                logger.info(`Captured response for GraphQL query from ${url}`);
                 if (response.ok) {
                     const json = await response.json();
-                    //console.log(JSON.stringify(json, null, 2));
+                    logger.debug('Response body', JSON.stringify(json, null, 2));
                     processGraphQLResponse(json, inventory);
                 }
                 else {
-                    throw new Error(`GraphQL request failed with ${response.status} status`);
+                    throw new Error(`GraphQL request failed with ${status} status`);
                 }
             }
         }
@@ -117,7 +140,7 @@ async function onResponse(response, inventory) {
 
 function processGraphQLResponse(json, inventory) {
     const vehicles = json.data[GRAPHQL_QUERY]['vehicleSummary'];
-    console.log(`Found ${vehicles.length} vehicle(s)`);
+    logger.info(`Found ${vehicles.length} vehicle(s)`);
     inventory.push(...vehicles)
 }
 
@@ -125,14 +148,18 @@ async function executeGraphQLQueryWithPaging(page, query, inventory) {
     let pageNo = 1, totalPages = 1;
     while (pageNo <= totalPages) {
         const json = await executeGraphQLQuery(page, query.replace('{pageNo}', pageNo));
-        //console.log(JSON.stringify(json, null, 2));
+        logger.debug(`GraphQL query for page ${pageNo} returned:`, JSON.stringify(json, null, 2));
+
         totalPages = json.data[GRAPHQL_QUERY].pagination.totalPages;
+        logger.debug(`GraphQL query indicated total pages:`, totalPages);
         processGraphQLResponse(json, inventory);
         pageNo++;
     }
 }
 
-async function executeGraphQLQuery(page, query) {    
+async function executeGraphQLQuery(page, query) {
+    logger.debug('Executing graphql query:', query);
+
     let fetchSuccess, fetchError;
     const fetchComplete = new Promise((resolve, reject) => {
         fetchSuccess = resolve;
@@ -144,7 +171,6 @@ async function executeGraphQLQuery(page, query) {
     });
 
     try {
-        console.log('Adding script to execute graphql query');
         await page.addScriptTag({
             content: `
                 fetch(
@@ -162,6 +188,7 @@ async function executeGraphQLQuery(page, query) {
                     .catch(error => { window.fetchError(error.message); });
             `.trim(),
           });
+          logger.info('Added script to execute graphql query');
     
           return await fetchComplete;
     }
