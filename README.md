@@ -1,13 +1,17 @@
 # Overview
 
-Automates navigation of Toyota's inventory search via a GUI browser to export a single query of inventory data into a structured format.
+Automates a Toyota inventory search using a web browser and exports a single query of inventory data into a structured format.
 
-Toyota seems to have gone to great lengths (e.g. AWS WAF intelligent threat mitigation) to prevent scraping of inventory data and this isn't meant to circumvent that. It is simply for personal use for those aiming to analyze local inventory for a particular model. (The website is rather cumbersome to search with and click through if you're looking for a specific option, e.g. bench seat.)
+**This project is not affiliated with or endorsed by Toyota.**
 
-## Running locally (visible browser)
+Toyota has made it virtually impossible to call their GraphQL APIs directly (via WAF with intelligent threat detection), undestandably, to prevent unauthorized scraping. But that makes it difficult for motivated buyers to analyze and keep up on inventory for high-demand models, as the website is extremely cumbersome to point-and-click through (especially if you're looking for a specified option) and doesn't provide an option to be noified when new vehicles are added.
+
+This tool is intended for *personal use* to automate a single query of inventory data and export it into a JSON or CSV format for analysis. It does so via web browser so as not to circumvent Toyota's intended use for their APIs.
+
+## Running locally (browser visible)
 
 #### Requirements
-`node` and `npm`
+- Node.js
 
 #### Install
 ```
@@ -27,7 +31,7 @@ npm run start -- --model corolla --zipcode 97204 --distance 100 --csv ./out/inve
 ## Running via container (hidden browser)
 
 #### Requirements
-`docker`
+- Docker
 
 #### Build
 ```
@@ -46,7 +50,7 @@ MODEL=corolla ZIPCODE=97204 DISTANCE=100 CSV=out/inventory.csv JSON=out/inventor
 
 ## Running via published Docker image
 
-The app is published as a multi-arch image to Docker hub [here](https://hub.docker.com/r/rtomac/toyota-inventory).
+The app is published as a multi-arch image to Docker hub [here](https://hub.docker.com/r/rtomac/yota-search).
 
 #### Run
 ```
@@ -57,7 +61,7 @@ docker run -it \
     -e CSV=out/inventory.csv \
     -e JSON=out/inventory.json \
     -v ./out:/root/app/out \
-    rtomac/toyota-inventory:latest
+    rtomac/yota-search:latest
 ```
 
 ## License

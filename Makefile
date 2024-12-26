@@ -1,6 +1,7 @@
 SHELL=/bin/bash
 
-IMAGE_NAME=toyota-inventory
+IMAGE_NAME=yota-search
+IMAGE_TAG=local
 LOGLEVEL?=info
 
 .PHONY: setup
@@ -13,7 +14,7 @@ start:
 
 .PHONY: build
 build:
-	docker build -t $(IMAGE_NAME) .
+	docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
 
 .PHONY: run
 run:
@@ -27,4 +28,4 @@ run:
 		-v ./src:/root/app/src \
 		-v ./out:/root/app/out \
 		-v ./start.sh:/root/app/start.sh \
-		$(IMAGE_NAME)
+		$(IMAGE_NAME):$(IMAGE_TAG)

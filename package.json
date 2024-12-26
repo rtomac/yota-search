@@ -1,5 +1,5 @@
 {
-  "name": "toyota-inventory",
+  "name": "yota-search",
   "version": "1.0.0",
   "main": "src/automate.js",
   "scripts": {
@@ -7,7 +7,7 @@
   },
   "author": "Ryan Tomac",
   "license": "MIT",
-  "description": "Automates navigation of Toyota's inventory search via a GUI browser to export a single query of inventory data into a structured format.",
+  "description": "Automates a Toyota inventory search using a web browser",
   "dependencies": {
     "csv-stringify": "^6.5.2",
     "log4js": "^6.9.1",
