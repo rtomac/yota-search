@@ -60,9 +60,9 @@ docker run -it \
     -e MODEL=corolla \
     -e ZIPCODE=97204 \
     -e DISTANCE=100 \
-    -e CSV=out/inventory.csv \
-    -e JSON=out/inventory.json \
-    -v ./out:/root/app/out \
+    -e CSV=/tmp/yota-search/inventory.csv \
+    -e JSON=/tmp/yota-search/inventory.json \
+    -v /tmp/yota-search:/tmp/yota-search \
     rtomac/yota-search:latest
 ```
 
