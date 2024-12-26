@@ -8,6 +8,8 @@ Toyota has made it virtually impossible to call their GraphQL APIs directly (via
 
 This tool is intended for *personal use* to automate a single query of inventory data and export it into a JSON or CSV format for analysis. It does so via web browser so as not to circumvent Toyota's intended use for their APIs.
 
+# Usage
+
 ## Running locally (browser visible)
 
 #### Requirements
