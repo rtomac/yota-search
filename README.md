@@ -4,7 +4,7 @@ Automates a Toyota inventory search using a web browser and exports a single que
 
 **This project is not affiliated with or endorsed by Toyota.**
 
-Toyota has made it virtually impossible to call their GraphQL APIs directly (via WAF with intelligent threat detection), undestandably, to prevent unauthorized scraping. But that makes it difficult for motivated buyers to analyze and keep up on inventory for high-demand models, as the website is extremely cumbersome to point-and-click through (especially if you're looking for a specified option) and doesn't provide an option to be noified when new vehicles are added.
+Toyota has made it virtually impossible to call their GraphQL APIs directly (via WAF with intelligent threat detection), understandably, to prevent unauthorized scraping. But that makes it difficult for motivated buyers to analyze and keep up on inventory for high-demand models, as the website is extremely cumbersome to point-and-click through (especially if you're looking for a specific option) and doesn't provide an option to be noified when new vehicles are added.
 
 This tool is intended for *personal use* to automate a single query of inventory data and export it into a JSON or CSV format for analysis. It does so via web browser so as not to circumvent Toyota's intended use for their APIs.
 
