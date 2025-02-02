@@ -56,6 +56,8 @@ async function main() {
 
     logger.info(`Found a total of ${inventory.length} inventory entr(ies) to write`);
 
+    addUrlsToInventory(inventory);
+
     if (jsonPath) {
         fs.writeFileSync(jsonPath, JSON.stringify(inventory, null, 2));
         logger.info(`Inventory JSON written to ${jsonPath}`);
@@ -73,6 +75,12 @@ function param(arg, env, def) {
     if (arg != null && String(arg).length) return arg;
     if (env != null && String(env).length) return env;
     return def;
+}
+
+function addUrlsToInventory(inventory) {
+    inventory.forEach(v => {
+        v.url = `${BASE_URL}/${params.model}/?vin=${v.vin}&zipcode=${params.zipcode}`;
+    });
 }
 
 async function runWithListenerOnPageQueries(page) {
@@ -226,7 +234,7 @@ function writeInventoryToCsv(inventory, inventoryCsvPath) {
         'Distance': v => v.distance,
         'Option Codes': v => v.options.map(o => o.optionCd).join(','),
         'Option Names': v => v.options.map(o => o.marketingName).join(','),
-
+        'URL': v => v.url,
     };
 
     const headers = Object.keys(map);
