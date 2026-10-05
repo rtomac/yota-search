@@ -152,6 +152,10 @@ async function onResponse(response, inventory) {
 
 function processGraphQLResponse(json, inventory) {
     const vehicles = json.data[GRAPHQL_QUERY]['vehicleSummary'];
+    if (!vehicles) {
+        logger.debug('Skipping GraphQL response without vehicle data');
+        return;
+    }
     logger.info(`Found ${vehicles.length} vehicle(s)`);
     inventory.push(...vehicles)
 }
